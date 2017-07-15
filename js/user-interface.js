@@ -6,10 +6,6 @@ $(document).ready(function () {
     var MIDI_NUMBER_OF_NOTES = 12;
 
     // Enums, settings, variables and help functions used throughout the document
-    /*var unitEnum = {
-        millimeters: "mm",
-        inches: "in"
-    };*/
     var noteShapeEnum = {
         round: "round",
         square: "square",
@@ -27,8 +23,8 @@ $(document).ready(function () {
             height: 300
         },
         note: {
-            width: 6,
-            height: 2.5,
+            width: 3,
+            height: 3,
             rounding: 2
         },
         // Margin is workpiece offsets
@@ -61,7 +57,7 @@ $(document).ready(function () {
             fileFormat: fileFormatEnum.svg,
             strokeColor: "#FF0000"
         }
-    };
+    }
 
     // Currently it is the length of the music strip, has to be replaced with the length of the longest strip.
     var endX;
@@ -70,6 +66,7 @@ $(document).ready(function () {
 
     var song;
     var goodNotes;
+    var font;
 
     function addUnit(distance) {
         return distance + settings.unit;
@@ -104,7 +101,6 @@ $(document).ready(function () {
     MidiConvert.load("a.mid", function (midi) {
         song = midi;
         song.selectedTrack = 1;
-        refreshPreview();
     })
     // END TO REMOVE
     function loadMidiFile(file) {
@@ -151,7 +147,7 @@ $(document).ready(function () {
             throw "Not a valid note number";
 
         var scaleIndexToNote = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        note = scaleIndexToNote[noteNumber % MIDI_NUMBER_OF_NOTES];
+        var note = scaleIndexToNote[noteNumber % MIDI_NUMBER_OF_NOTES];
         note += parseInt(noteNumber / MIDI_NUMBER_OF_NOTES).toString();
         return note;
     }
@@ -180,39 +176,67 @@ $(document).ready(function () {
     /*
      * Showing preview
      */
-    function refreshPreview() {
-        var notesWidth = 50;
-        var height = settings.stripHeight;
+    opentype.load('fonts/FiraSansMedium.woff', function (err, loadedFont) {
+        if (err) {
+            throw ('Could not load font: ' + err);
+        }
+        else {
+            font = loadedFont;
+            // To be removed
+            refreshPreview();
+        }
+    });
 
-        function skewedRectangle() {
+    function refreshPreview() {
+        function skewedRectangle(notesWidth) {
             return new makerjs.models.ConnectTheDots(true, [
                 [0, 0],
-                [settings.edgeDifference, height],
-                [settings.edgeDifference + settings.padding.left + notesWidth + settings.padding.right + settings.edgeDifference, height],
+                [settings.edgeDifference, settings.stripHeight],
+                [settings.edgeDifference + settings.padding.left + notesWidth + settings.padding.right + settings.edgeDifference, settings.stripHeight],
                 [settings.edgeDifference + settings.padding.left + notesWidth + settings.padding.right, 0]
             ]);
         }
 
-        function note(x, y, ) {
-            var note = circle = {
-                type: 'circle',
-                origin: [5, 5],
-                radius: 5
-            };
-            var pathObject = { test: note };
-            this.paths = pathObject;
+        function noteHole(options) {
+            var hole;
+            switch (settings.noteShape) {
+                case noteShapeEnum.round:
+                    options.x += settings.note.width / 2;
+                    var note = {
+                        type: 'circle',
+                        radius: settings.note.height / 2
+                    };
+                    hole = { paths: [note] };
+                    break;
+                case noteShapeEnum.square:
+                    hole = new makerjs.models.Square(settings.note.height);
+                    options.y -= settings.note.height / 2;
+                    break;
+                case noteShapeEnum.rectangle:
+                    hole = new makerjs.models.Rectangle(settings.note.width, settings.note.height);
+                    options.y -= settings.note.height / 2;
+                    break;
+                case noteShapeEnum.roundedRectangle:
+                    hole = new makerjs.models.RoundRectangle(settings.note.width, settings.note.height, settings.note.height / 2);
+                    options.y -= settings.note.height / 2;
+                    break;
+            }
+            if (options.badNote) {
+                hole.layer = "red";
+            }
+            return makerjs.model.move(hole, [options.x, options.y]);
         }
 
-        function generateGrid() {
+        var gridHeight = (settings.lineHeight * (settings.board.length - 1));
+        var gridBottom = (settings.stripHeight - gridHeight) / 2;
+        function generateGrid(notesWidth) {
             var gridObject = [];
 
             // Vertical lines
             var verticalLineX = settings.edgeDifference + settings.padding.left;
-            var gridHeight = (settings.lineHeight * (settings.board.length - 1));
-            var gridBottom = (height - gridHeight) / 2;
+
             var gridTop = gridHeight + gridBottom;
-            console.log();
-            while (verticalLineX <  settings.edgeDifference + settings.padding.left + notesWidth) {
+            while (verticalLineX < settings.edgeDifference + settings.padding.left + notesWidth) {
                 var line = {
                     type: 'line',
                     origin: [verticalLineX, gridBottom],
@@ -230,128 +254,34 @@ $(document).ready(function () {
                     origin: [settings.edgeDifference + settings.padding.left, y],
                     end: [settings.edgeDifference + settings.padding.left + notesWidth, y]
                 };
+                if (i % 2 === 0) {
+                    line.layer = "blue";
+                }
+
                 gridObject.push(line);
             }
 
             this.paths = gridObject;
         }
 
-        var strip = skewedRectangle(notesWidth, height);
-        var grid = new generateGrid();
-        var model = {
-            models: [strip, grid]
-        };
+        function writeNoteNames() {
+            var x = settings.edgeDifference + settings.padding.left - (settings.fontSize * 2);
+            var names = [];
+            for (var i = 0; i < settings.board.length; i++) {
+                var y = gridBottom + (i * settings.lineHeight) - (settings.fontSize / 3);
+                var text = makerjs.model.move(
+                    new makerjs.models.Text(font, settings.board[i].name, settings.fontSize), [x, y]
+                );
+                names.push(text);
+            }
+            return names;
+        }
 
-        var svgOptions = {
-            units: settings.unit,
-            useSvgPathOnly: false,
-            svgAttrs: { xmlns: "http://www.w3.org/2000/svg" }
-        };
-        var svg = makerjs.exporter.toSVG(model, svgOptions);
-        $("#preview-wrapper").html(svg);
-    }
-
-    /*var snap = Snap("#preview");
-    snap.zpd();
-    var canvas = Snap.select('#snapsvg-zpd-' + snap.id);
-
-    $("#show-preview").click(function () {
-        refreshPreview();
-    });
-
-    function refreshPreview() {
+        models = [];
         var notes = song.tracks[song.selectedTrack].notes;
-
-        canvas.clear();
-        //snap.clear();
-
-        canvas.rect(0, 0, addUnit(settings.workpiece.width), addUnit(settings.workpiece.height)).attr({
-            fill: "none",
-            stroke: "#000000",
-            strokeWidth: settings.strokeWidth
-        });
-
-        var notesGroup = canvas.g();
-        notesGroup.attr({
-            fill: "none",
-            stroke: "#000000",
-            strokeWidth: settings.strokeWidth
-        });
-
-        var badNotesGroup = canvas.g();
-        badNotesGroup.attr({
-            fill: "none",
-            stroke: "#FF0000",
-            strokeWidth: settings.strokeWidth
-        });
-
-        var cardGroup = canvas.g().attr({
-            fill: "none",
-            stroke: "#000000",
-            strokeWidth: settings.strokeWidth
-        });
-
-        endX = settings.margin.left + (2 * settings.edgeDifference) + settings.padding.left + (notes[notes.length - 1].time * 20) + settings.note.width + settings.padding.right;
-        endY = settings.margin.top + settings.stripHeight;
-
-        cardGroup.add(canvas.line(
-            addUnit(settings.margin.left + settings.edgeDifference),
-            addUnit(settings.margin.top),
-            addUnit(endX + settings.padding.right),
-            addUnit(settings.margin.top)
-        ));
-        cardGroup.add(canvas.line(
-            addUnit(endX + settings.padding.right),
-            addUnit(settings.margin.top),
-            addUnit(endX - settings.edgeDifference + settings.padding.right),
-            addUnit(endY)));
-        cardGroup.add(canvas.line(
-            addUnit(endX - settings.edgeDifference + settings.padding.right),
-            addUnit(endY),
-            addUnit(settings.margin.left),
-            addUnit(endY)
-        ));
-        cardGroup.add(canvas.line(
-            addUnit(settings.margin.left),
-            addUnit(endY),
-            addUnit(settings.margin.left + settings.edgeDifference),
-            addUnit(settings.margin.top)
-        ));
-
-        var noteNamesGroup = canvas.g().attr({
-            'font-size': addUnit(settings.fontSize),
-            'text-anchor': "end"
-        });
-
-        var gridLinesGroup = canvas.g().attr({
-            fill: "none",
-            stroke: "#000000",
-            strokeWidth: settings.strokeWidth
-        });
-
-        // Note lines
-        for (var i = 0; i < settings.board.length; i++) {
-            var x = settings.margin.left + settings.edgeDifference + settings.padding.left;
-            var y = settings.margin.top + settings.padding.top + (i * settings.lineHeight);
-            gridLinesGroup.line(addUnit(x), addUnit(y), addUnit(endX - settings.edgeDifference), addUnit(y));
-            noteNamesGroup.text(addUnit(x - 1), addUnit(y + (settings.fontSize / 3)), settings.board[i].name);
-        }
-
-        // Vertical lines
-        var verticalLineY1 = settings.margin.top + settings.padding.top;
-        var verticalLineY2 = verticalLineY1 + ((settings.board.length - 1) * settings.lineHeight);
-        var verticalLineX = settings.margin.left + settings.edgeDifference + settings.padding.left;
-        while (verticalLineX < endX - settings.edgeDifference) {
-            gridLinesGroup.line(addUnit(verticalLineX), addUnit(verticalLineY1), addUnit(verticalLineX), addUnit(verticalLineY2));
-            verticalLineX += (10);
-        }
-
         goodNotes = [];
         var amountOfBadNotes = 0;
         $.each(notes, function (i, note) {
-            var x = settings.margin.left + settings.edgeDifference + settings.padding.left + note.time * 20;
-            var y;
-
             var boardIndex = -1;
             for (var i = 0; i < settings.board.length; i++) {
                 if (settings.board[i].midi === note.midi) {
@@ -359,87 +289,41 @@ $(document).ready(function () {
                     break;
                 }
             }
+            var x = settings.edgeDifference + settings.padding.left + note.time * 20;
             if (boardIndex != -1) {
                 goodNotes.push(note);
-                y = settings.margin.top + settings.padding.top + (boardIndex * settings.lineHeight);
-                //notesGroup.add(canvas.circle(addUnit(x), addUnit(y), addUnit(noteHeight / 2)));
-                notesGroup.add(canvas.rect(
-                    addUnit(x),
-                    addUnit(y - (settings.note.height / 2)),
-                    addUnit(settings.note.width),
-                    addUnit(settings.note.height),
-                    addUnit(settings.note.rounding)
-                ));
+                var y = settings.padding.top + (boardIndex * settings.lineHeight);
+                models.push(new noteHole({ x: x, y: y }));
             } else {
                 amountOfBadNotes++;
-                if (settings.showBadNotes) {
-                    badNotesGroup.add(canvas.rect(
-                        addUnit(x),
-                        addUnit(settings.margin.top),
-                        addUnit(settings.note.width),
-                        addUnit(settings.note.height),
-                        addUnit(settings.note.rounding)
-                    ));
-                }
+                var y = settings.note.height;
+                models.push(new noteHole({ x: x, y: y, badNote: true }));
             }
+            console.log(x);
         });
         console.log("There are " + amountOfBadNotes + " bad notes")
+        var totalNotesWidth = (notes[notes.length - 1].time * 20) + settings.note.width;
+        console.log("totalNotesWidth");
+        console.log(totalNotesWidth);
+
+        var strip = skewedRectangle(totalNotesWidth, settings.stripHeight);
+        var grid = new generateGrid(totalNotesWidth);
+        var noteNames = writeNoteNames();
+        models.push(strip, grid);
+        models = models.concat(noteNames);
+
+        var svgOptions = {
+            units: settings.unit,
+            useSvgPathOnly: false,
+            svgAttrs: { xmlns: "http://www.w3.org/2000/svg" }
+        };
+
+        var model = { models: models };
+        var svg = makerjs.exporter.toSVG(model, svgOptions);
+        $("#preview-wrapper").html(svg);
+
     }
 
-    function drawGrid(target) {
-
-    }*/
-
-    /*
-     * Playback of the notes
-     */
-    /*var playBackLine;
-    $("#play").click(function () {
-        refreshPreview();
-        var playBackLineStart = addUnit(settings.margin.left + settings.edgeDifference + settings.padding.left);
-        playBackLine = canvas.line(
-            playBackLineStart,
-            addUnit(settings.margin.top),
-            playBackLineStart,
-            addUnit(settings.margin.top + settings.stripHeight)
-        ).attr({
-            fill: "none",
-            stroke: "#0000FF",
-            strokeWidth: settings.strokeWidth
-        });
-        Tone.Transport.stop();
-
-        var synth = new Tone.PolySynth(settings.board.length, Tone.Synth, {
-            "oscillator": {
-                "type": "square",
-                "count": 3,
-                "spread": 30
-            }
-        }).toMaster();
-        // Not working yet
-        var vol = new Tone.Volume(settings.volume);
-        synth.chain(vol, Tone.Master);
-        // TODO bpm is not changing?
-        Tone.Transport.bpm.value = settings.bpm;
-        new Tone.Part(function (time, note) {
-            synth.triggerAttackRelease(note.name, .1, time, 1);
-
-        }, goodNotes).start()
-
-        Tone.Transport.start();
-        var playBackLineEnd = addUnit(settings.margin.left + settings.edgeDifference + settings.padding.left);
-        var playBackLineEnd = addUnit(endX - settings.edgeDifference - settings.padding.right);
-        // TODO: how to calculate speed in relation to BPM
-        playBackLine.animate({ x1: playBackLineEnd, x2: playBackLineEnd }, 110000);
-    });
-
-    $("#stop").click(function () {
-        Tone.Transport.stop()
-        playBackLine.stop();
-        playBackLine.remove();
-        //playBackLine.attr({ x1: "2mm", x2: "2mm" });
-    });
-    */
     /*
      * Exporting 
      */
