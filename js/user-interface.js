@@ -299,12 +299,9 @@ $(document).ready(function () {
                 var y = settings.note.height;
                 models.push(new noteHole({ x: x, y: y, badNote: true }));
             }
-            console.log(x);
         });
         console.log("There are " + amountOfBadNotes + " bad notes")
         var totalNotesWidth = (notes[notes.length - 1].time * 20) + settings.note.width;
-        console.log("totalNotesWidth");
-        console.log(totalNotesWidth);
 
         var strip = skewedRectangle(totalNotesWidth, settings.stripHeight);
         var grid = new generateGrid(totalNotesWidth);
