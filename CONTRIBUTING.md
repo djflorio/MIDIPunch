@@ -9,7 +9,7 @@ Main communication is done on [Gitter](https://gitter.im/Wintergatan/Midi-to-las
     - [htmllint](https://htmllint.github.io/)
     - [bootlint](https://github.com/twbs/bootlint)
     - [standard js](https://standardjs.com/)
-- The automated checks add comments as to what you can improve.
+- If the automated checks fail, click on _details_ to see what failed specifically
 - Wait for pull request to be reviewed.
 
 ## Coding style
