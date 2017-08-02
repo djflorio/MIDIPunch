@@ -1,4 +1,3 @@
-/* global $ */
 var makerjs = require('makerjs')
 $(document).ready(function () {
   // No magic numbers
@@ -119,8 +118,7 @@ $(document).ready(function () {
     reader.readAsBinaryString(file)
   }
 
-  $('#selectTrackForm').submit(function (e) {
-    e.preventDefault()
+  $('#selectTrackForm').click(function (e) {
     $('#trackModal').modal('hide')
     song.selectedTrack = $('#trackPicker option:selected').val()
     refreshPreview()
