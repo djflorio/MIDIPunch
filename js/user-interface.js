@@ -1,4 +1,4 @@
-var makerjs = require('makerjs')
+var makerjs = require('makerjs');
 $(document).ready(function () {
   // No magic numbers
   var MIDI_MIN_NOTE_NUMBER = 0
