@@ -8,8 +8,7 @@ Main communication is done on [Gitter](https://gitter.im/Wintergatan/Midi-to-las
 - Wait for pull request to be reviewed.
 
 ## Coding style
-- camelCase variables
-- spaces around operators
-- 4 spaces for indentation
-- end statements with a semicolon (`;`)
-- ECMAScript 5
+We use JavaScript Standard Style. [You can review the rules here.](https://standardjs.com/rules.html#javascript-standard-style)
+When you do a pull request, stickler-ci checks the code if it's compliant.
+
+[Bootstrap 3](https://getbootstrap.com/) is used for the user interface, it's preferable to run [bootlint](https://github.com/twbs/bootlint#in-the-browser) to check for errors.

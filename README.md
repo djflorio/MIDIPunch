@@ -1,7 +1,10 @@
-# MIDIPunch
-This repository hosts the basic MIDI to music box converter available on https://wintergatan.github.io/MIDIPunch/ .
+[![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 
-This a web-app that runs in the browser without a back end.
+# MIDIPunch
+MIDIPunch is a crowdsourced project initiated by Martin Molin from Wintergatan. It's a self standing web application with no back end.
+
+This repository hosts the basic MIDI to music box converter available on [https://wintergatan.github.io/MIDIPunch/](https://wintergatan.github.io/MIDIPunch/).
+
 ## Folder structure
 - **css:** Vendor and own css styles
 - **drawings:** Drawings made with [draw.io](https://www.draw.io/) for mockups and UML
