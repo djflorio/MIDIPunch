@@ -46,10 +46,10 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="#" data-toggle="modal" data-target="#helpModal">How to use</a>
+                        <a href="#" data-toggle="modal" data-target="#help-modal">How to use</a>
                     </li>
                     <li>
-                        <a href="#" data-toggle="modal" data-target="#aboutModal">About</a>
+                        <a href="#" data-toggle="modal" data-target="#about-modal">About</a>
                     </li>
                 </ul>
             </div>
@@ -63,12 +63,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel">
+    <div class="modal fade" id="about-modal" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="aboutModalLabel">About</h4>
+                    <h4 class="modal-title" id="about-modal-label">About</h4>
                 </div>
                 <div class="modal-body">
                     This tool automates the process of turning MIDI files into printable or cuttable music box paper tape. It was inspired by
@@ -82,23 +82,23 @@
         </div>
     </div>
 
-    <div class="modal fade" id="trackModal" tabindex="-1" role="dialog" aria-labelledby="trackModalLabel">
+    <div class="modal fade" id="track-modal" tabindex="-1" role="dialog" aria-labelledby="track-modal-label">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="trackModalLabel">Choose track</h4>
+                    <h4 class="modal-title" id="track-modal-label">Choose track</h4>
                 </div>
                 <div class="modal-body">
 
                     <div class="form-group">
-                        <label for="trackPicker">Pick track</label>
-                        <select id="trackPicker" class="selectpicker form-control" name="track"></select>
+                        <label for="track-picker">Pick track</label>
+                        <select id="track-picker" class="selectpicker form-control" name="track"></select>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-                    <button type="submit" id="selectTrackForm" class="btn btn-primary">Submit</button>
+                    <button type="submit" id="select-track-btn" class="btn btn-primary">Submit</button>
                 </div>
             </div>
         </div>

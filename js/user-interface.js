@@ -104,7 +104,7 @@ $(document).ready(function () {
         if (a.name) { return a.name } else { return 'unnamed' }
       })
 
-      var trackPicker = $('#trackPicker')
+      var trackPicker = $('#track-picker')
       trackPicker.empty()
       for (var i = 0; i < tracks.length; i++) {
         trackPicker.append($('<option/>', {
@@ -113,14 +113,14 @@ $(document).ready(function () {
         }))
       }
       trackPicker.selectpicker('refresh')
-      $('#trackModal').modal('show')
+      $('#track-modal').modal('show')
     }
     reader.readAsBinaryString(file)
   }
 
-  $('#selectTrackForm').click(function (e) {
-    $('#trackModal').modal('hide')
-    song.selectedTrack = $('#trackPicker option:selected').val()
+  $('#select-track-btn').click(function (e) {
+    $('#track-modal').modal('hide')
+    song.selectedTrack = $('#track-picker option:selected').val()
     refreshPreview()
   })
 
