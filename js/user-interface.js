@@ -86,7 +86,7 @@ $(document).ready(function () {
   // TO REMOVE
   window.MidiConvert.load('a.mid', function (midi) {
     song = midi
-    song.selectedTrack = 1
+    song.selectedTrack = 0
   })
   // END TO REMOVE
   function loadMidiFile (file) {
@@ -155,20 +155,41 @@ $(document).ready(function () {
     })
   }
 
-  /*
-   * Showing preview
+  /**
+   * Load the font used in drawing the notes on the SVG export
    */
   window.opentype.load('fonts/FiraSansMedium.woff', function (err, loadedFont) {
     if (err) {
       throw Error('Could not load font: ' + err)
     } else {
       font = loadedFont
-      // To be removed
+      // TODO: remove
       refreshPreview()
     }
   })
 
+  /**
+   * Refresh the preview with the default preview SVG options
+   */
   function refreshPreview () {
+    var options = {
+      grid: true,
+      noteNames: true,
+      stripBorder: true,
+      export: false
+    }
+    $('#preview-wrapper').html(generateSVG(options))
+  }
+
+  /**
+   * Generates either a preview or an export SVG
+   * @param {object} options - can be either false or true
+   * grid: The grid aligned with the notes
+   * noteNames: The names of the notes, e.g. C1, at the beginning of the strip
+   * stripBorder: The top, bottom, left and right border op the strip
+   * export: Sets the stroke color of all elements to the settings.export.strokeColor color
+   */
+  function generateSVG (options) {
     function skewedRectangle (notesWidth) {
       return new makerjs.models.ConnectTheDots(true, [
         [0, 0],
@@ -236,7 +257,7 @@ $(document).ready(function () {
           origin: [settings.edgeDifference + settings.padding.left, y],
           end: [settings.edgeDifference + settings.padding.left + notesWidth, y]
         }
-        if (j % 2 === 0) {
+        if (!options.export && j % 2 === 0) {
           horizontalLine.layer = 'blue'
         }
 
@@ -286,22 +307,32 @@ $(document).ready(function () {
     console.log('There are ' + amountOfBadNotes + ' bad notes')
     var totalNotesWidth = (notes[notes.length - 1].time * 20) + settings.note.width
 
-    var strip = skewedRectangle(totalNotesWidth, settings.stripHeight)
+    var stripBorder = skewedRectangle(totalNotesWidth, settings.stripHeight)
     var GenerateGrid = generateGrid
     var grid = new GenerateGrid(totalNotesWidth)
     var noteNames = writeNoteNames()
-    models.push(strip, grid)
-    models = models.concat(noteNames)
+
+    if (options.stripBorder) {
+      models.push(stripBorder)
+    }
+    if (options.grid) {
+      models.push(grid)
+    }
+    if (options.noteNames) {
+      models = models.concat(noteNames)
+    }
 
     var svgOptions = {
       units: settings.unit,
       useSvgPathOnly: false,
       svgAttrs: { xmlns: 'http://www.w3.org/2000/svg' }
     }
+    if (options.export) {
+      svgOptions.stroke = settings.export.strokeColor
+    }
 
     var model = { models: models }
-    var svg = makerjs.exporter.toSVG(model, svgOptions)
-    $('#preview-wrapper').html(svg)
+    return makerjs.exporter.toSVG(model, svgOptions)
   }
 
   /*
@@ -317,7 +348,13 @@ $(document).ready(function () {
     switch ($('#export-format option:selected').val()) {
       case 'svg':
         // to be replaced with export SVG
-        var rawSvg = '<svg></svg>'
+        var options = {
+          grid: false,
+          noteNames: false,
+          stripBorder: true,
+          export: true
+        }
+        var rawSvg = generateSVG(options)
         var svg = new window.Blob([rawSvg], { type: 'image/svg+xml;charset=utf-8' })
         window.saveAs(svg, 'output.svg')
         break
